@@ -349,6 +349,7 @@ def fetch_template_bytes(template_url, carrier_name):
         local_candidates.append(os.path.join(app_dir, "dingbang.xlsx"))
     elif "明日" in carrier_name:
         local_candidates.extend([
+            os.path.join(app_dir, "mingrizhixing_new.xlsx"),
             os.path.join(app_dir, "明日之星 新版.xlsx"),
             os.path.join(app_dir, "mingrizhixing.xlsx")
         ])
@@ -1159,7 +1160,9 @@ with tab_invoice:
 
                     template_bytes = template_cache.get(current_carrier)
                     if not template_bytes:
-                        skipped_records.append({'货件编号': fba_shipment_id, '识别物流': current_carrier, '原因': '未配置发票模板'})
+                        tpl_url_cfg = INVOICE_CONFIG["template_urls"].get(current_carrier, "")
+                        reason = f"模板下载失败且本地无模板文件（URL: {tpl_url_cfg or '未配置'}，已尝试本地: {carrier_name}.xlsx / mingrizhixing_new.xlsx 等）" if current_carrier == "明日之星" else "未配置发票模板"
+                        skipped_records.append({'货件编号': fba_shipment_id, '识别物流': current_carrier, '原因': reason})
                         continue
 
                     account_name = "未知"
@@ -1336,9 +1339,9 @@ with tab_invoice:
 
                             mz_row = box_header_row + 1
                             for item in final_items:
-                                box_display = InvoiceProcessor.format_box_ranges(item['parsed_boxes']) if item['parsed_boxes'] else str(item['box_count'])
+                                box_display = f"{clean_fba}-{item['box_count']}"  # 箱号格式：货件编号-箱数，如 FBA19BSEHHYU000001-114
                                 mz_writes = [
-                                    (mz_box, box_display),                                   # 箱号：货件内流水号区间，如 1-3
+                                    (mz_box, box_display),                                   # 箱号：货件编号-箱数
                                     (mz_ref, item['val_ref_id'] or fba_shipment_id),         # Reference ID
                                     (mz_cn, item['val_name_cn']), (mz_en, item['val_name_en']),
                                     (mz_gw, item['val_weight']),                             # 毛重(KG) = 外箱重量
