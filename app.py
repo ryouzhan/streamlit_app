@@ -1345,7 +1345,7 @@ with tab_invoice:
                                     last_box = max(item['parsed_boxes'])
                                 else:
                                     first_box, last_box = 1, item['box_count']
-                                box_display = f"{clean_fba}U{first_box:06d}-{last_box:06d}"
+                                box_display = f"{clean_fba}U{first_box:06d}-{last_box}"
                                 mz_writes = [
                                     (mz_box, box_display),                                   # 箱号：FBA19XXXXXU000001-000012 形式（起-末流水号）
                                     (mz_ref, item['val_ref_id'] or fba_shipment_id),         # Reference ID
