@@ -1237,9 +1237,7 @@ with tab_invoice:
                             prev = merged_items[-1]
                             prev_cn, prev_en = str(prev['val_name_cn']).strip().lower(), str(prev['val_name_en']).strip().lower()
                             if (cn, en) == (prev_cn, prev_en):
-                                prev_end = max(prev['parsed_boxes']) if prev.get('parsed_boxes') else None
-                                if prev_end is not None and curr_start is not None and curr_start == prev_end + 1:
-                                    can_merge = True
+                                can_merge = True  # 明日之星：同品名(中英文一致)即合并，不要求箱号连续
 
                         if can_merge:
                             prev = merged_items[-1]
@@ -1339,9 +1337,13 @@ with tab_invoice:
 
                             mz_row = box_header_row + 1
                             for item in final_items:
-                                box_display = f"{clean_fba}-{item['box_count']}"  # 箱号格式：货件编号-箱数，如 FBA19BSEHHYU000001-114
+                                # 箱号格式：FBA货件编号+U+起始箱流水号-该行总箱数
+                                # 依据 Amazon 箱标：Box N → FBA19T0HSCF3U00000N，即 流水号 = 实体箱号
+                                # 同品名多行已合并为一行，箱数=覆盖范围内的实体箱总数
+                                first_box = min(item['parsed_boxes']) if item.get('parsed_boxes') else 1
+                                box_display = f"{clean_fba}U{first_box:06d}-{item['box_count']}"
                                 mz_writes = [
-                                    (mz_box, box_display),                                   # 箱号：货件编号-箱数
+                                    (mz_box, box_display),                                   # 箱号：FBA19XXXXXU000001-114 形式
                                     (mz_ref, item['val_ref_id'] or fba_shipment_id),         # Reference ID
                                     (mz_cn, item['val_name_cn']), (mz_en, item['val_name_en']),
                                     (mz_gw, item['val_weight']),                             # 毛重(KG) = 外箱重量
