@@ -1430,8 +1430,11 @@ with tab_invoice:
                         return None
 
                     col_fba = get_col(['FBA编号', '货件编号'])
-                    col_ref = get_col(['Reference ID', 'ReferenceId', '参考号'])
+                    col_ref = get_col(['Reference ID', 'ReferenceId', '参考号', '追踪编号'])
                     col_vol = get_col(['材积CM', '长*宽*高', '材积'])
+                    col_len = get_col(['尺寸(长)', '外箱长(cm)', '长(cm)', '外箱长'])
+                    col_wid = get_col(['尺寸(宽)', '外箱宽(cm)', '宽(cm)', '外箱宽'])
+                    col_hei = get_col(['尺寸(高)', '外箱高(cm)', '高(cm)', '外箱高'])
                     col_box = get_col(['箱数', '箱号'])
                     col_wt = get_col(['单件毛重', '单箱重', '外箱重量'])
                     col_hs = get_col(['海关编码', 'HSCODE', 'HS编码'])
@@ -1454,7 +1457,10 @@ with tab_invoice:
                             (col_wt, item['val_weight']), (col_hs, item['val_hs_code']),
                             (col_cn, item['val_name_cn']), (col_en, item['val_name_en']),
                             (col_qty, item['val_qty_per_box']), (col_price, item['val_unit_price']),
-                            (col_mat, item['val_material']), (col_use, item['val_usage'])
+                            (col_mat, item['val_material']), (col_use, item['val_usage']),
+                            (col_len, InvoiceProcessor.to_num(item['val_len'])),
+                            (col_wid, InvoiceProcessor.to_num(item['val_width'])),
+                            (col_hei, InvoiceProcessor.to_num(item['val_height']))
                         ]
 
                         ws.row_dimensions[current_row].height = 65 if col_img else 28
