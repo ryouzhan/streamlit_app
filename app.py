@@ -1337,13 +1337,17 @@ with tab_invoice:
 
                             mz_row = box_header_row + 1
                             for item in final_items:
-                                # 箱号格式：FBA货件编号+U+起始箱流水号-该行总箱数
-                                # 依据 Amazon 箱标：Box N → FBA19T0HSCF3U00000N，即 流水号 = 实体箱号
-                                # 同品名多行已合并为一行，箱数=覆盖范围内的实体箱总数
-                                first_box = min(item['parsed_boxes']) if item.get('parsed_boxes') else 1
-                                box_display = f"{clean_fba}U{first_box:06d}-{item['box_count']}"
+                                # 箱号格式：FBA货件编号+U+起始箱流水号-末尾箱流水号
+                                # 依据 Amazon 箱标：Box N → FBA19T0HSCF3U00000N
+                                # 该品名占据第 X~Y 箱时填 FBA19XXXXXU0000X-Y，如 FBA19SX3FH0XU000001-12
+                                if item.get('parsed_boxes'):
+                                    first_box = min(item['parsed_boxes'])
+                                    last_box = max(item['parsed_boxes'])
+                                else:
+                                    first_box, last_box = 1, item['box_count']
+                                box_display = f"{clean_fba}U{first_box:06d}-{last_box:06d}"
                                 mz_writes = [
-                                    (mz_box, box_display),                                   # 箱号：FBA19XXXXXU000001-114 形式
+                                    (mz_box, box_display),                                   # 箱号：FBA19XXXXXU000001-000012 形式（起-末流水号）
                                     (mz_ref, item['val_ref_id'] or fba_shipment_id),         # Reference ID
                                     (mz_cn, item['val_name_cn']), (mz_en, item['val_name_en']),
                                     (mz_gw, item['val_weight']),                             # 毛重(KG) = 外箱重量
